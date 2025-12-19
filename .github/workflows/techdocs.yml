@@ -23,10 +23,11 @@ jobs:
         run: npx @techdocs/cli generate
 
       - name: Publish TechDocs to Azure Blob
+        env:
+          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
         run: |
           npx @techdocs/cli publish \
             --publisher-type azureBlobStorage \
             --storage-name techdocs01 \
-            --entity default/component/payment-service \
-            --azureAccountName ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
-            --azureSasToken "${{ secrets.AZURE_STORAGE_SAS_TOKEN }}"
+            --entity default/component/payment-service
