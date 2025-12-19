@@ -1,6 +1,6 @@
 # Payment Service
 
-Este serviço é responsável pelo processamento de pagamentos.
+Este serviço é responsável pelo processamento de pagamentos!
 
 ## Responsabilidades
 - Autorizar pagamentos
