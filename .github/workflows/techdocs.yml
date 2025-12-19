@@ -1,16 +1,18 @@
-name: TechDocs
+name: Publish TechDocs
 
 on:
   push:
-    branches: [main]
-    paths:
-      - docs/**
-      - mkdocs.yml
-      - catalog-info.yaml
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   publish-techdocs:
     runs-on: ubuntu-latest
+
+    env:
+      TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+      TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS }}
 
     steps:
       - name: Checkout repository
@@ -19,19 +21,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Generate TechDocs
-        run: npx @techdocs/cli generate
+        run: |
+          npx @techdocs/cli generate
 
       - name: Publish TechDocs to Azure Blob Storage
-        run: >
-          npx @techdocs/cli publish
-          --publisher-type azureBlobStorage
-          --storage-name techdocs01
-          --entity default/component/payment-service
-          --azureAccountName $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME
-          --azureAccountKey $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY
-        env:
-          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        run: |
+          npx @techdocs/cli publish \
+            --publisher-type azureBlobStorage \
+            --storage-name techdocs01 \
+            --entity default/component/payment-service \
+            --azureAccountName "$TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME" \
+            --azureSasToken "$TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN"
