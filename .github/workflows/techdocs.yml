@@ -14,9 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install TechDocs CLI
-        run: npm install -g @backstage/techdocs-cli
-
       - name: Generate TechDocs
         run: techdocs-cli generate
 
