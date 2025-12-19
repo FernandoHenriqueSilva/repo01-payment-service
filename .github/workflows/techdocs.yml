@@ -27,6 +27,7 @@ jobs:
           npx @techdocs/cli publish
           --publisher-type azureBlobStorage
           --storage-name techdocs01
+          --entity default/component/payment-service
         env:
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
