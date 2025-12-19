@@ -2,8 +2,7 @@ name: TechDocs
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - docs/**
       - mkdocs.yml
@@ -13,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -22,12 +20,13 @@ jobs:
           node-version: 20
 
       - name: Generate TechDocs
-        run: |
-          npx @techdocs/cli generate
+        run: npx @techdocs/cli generate
 
-      - name: Publish TechDocs to Azure Blob Storage
-        run: |
-          npx @techdocs/cli publish --publisher-type azureBlobStorage
+      - name: Publish TechDocs
+        run: >
+          npx @techdocs/cli publish
+          --publisher-type azureBlobStorage
+          --storage-name techdocs01
         env:
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
