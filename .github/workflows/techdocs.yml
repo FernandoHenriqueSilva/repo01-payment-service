@@ -4,31 +4,46 @@ on:
   push:
     branches: [main]
     paths:
-      - docs/**
-      - mkdocs.yml
+      - 'docs/**'        # Dispara quando arquivos na pasta docs mudam
+      - 'mkdocs.yml'     # Dispara quando o arquivo de configuração do mkdocs muda
+      - 'catalog-info.yaml'  # Opcional: inclua se quiser disparar ao mudar a entidade
 
 jobs:
   publish-techdocs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      # 1. Baixar o código do repositório
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          node-version: 22
+          fetch-depth: 0 # Importante para o TechDocs gerar versões corretamente
 
-      - name: Generate TechDocs
-        run: npx @techdocs/cli generate
+      # 2. Configurar Node.js (necessário para o techdocs-cli)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Use a versão que seu projeto precisa
 
+      # 3. Gerar a documentação HTML a partir dos arquivos markdown
+      - name: Generate TechDocs site
+        run: npx @techdocs/cli generate --no-docker --verbose
+        # A opção --no-docker assume que o mkdocs está instalado globalmente ou via pip.
+        # Se preferir usar Docker, remova --no-docker.
+
+      # 4. Publicar para o Azure Blob Storage
       - name: Publish TechDocs to Azure Blob Storage
         env:
+          # ESSAS VARIÁVEIS DEVEM SER IGUAIS ÀS DO SEU AMBIENTE LOCAL DO BACKSTAGE
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          TECHDOCS_AZURE_BLOB_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         run: |
+          echo "Publicando documentação para a conta: $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME"
+          
           npx @techdocs/cli publish \
             --publisher-type azureBlobStorage \
             --storage-name techdocs01 \
             --entity default/component/payment-service \
             --azureAccountName "$TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME" \
-            --azureAccountKey "$TECHDOCS_AZURE_BLOB_STORAGE_KEY"
+            --azureAccountKey "$TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY" \
+            --verbose
