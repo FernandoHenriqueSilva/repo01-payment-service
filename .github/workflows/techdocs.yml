@@ -6,7 +6,6 @@ on:
     paths:
       - docs/**
       - mkdocs.yml
-      - catalog-info.yaml
 
 jobs:
   publish-techdocs:
@@ -17,17 +16,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Generate TechDocs
         run: npx @techdocs/cli generate
 
-      - name: Publish TechDocs to Azure Blob
-        env:
-          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+      - name: Publish TechDocs to Azure Blob Storage
         run: |
           npx @techdocs/cli publish \
             --publisher-type azureBlobStorage \
             --storage-name techdocs01 \
-            --entity default/component/payment-service
+            --entity default/component/payment-service \
+            --azureAccountName $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME
+        env:
+          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
