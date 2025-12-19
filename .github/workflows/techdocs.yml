@@ -1,4 +1,4 @@
-name: TechDocs 
+name: TechDocs
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - docs/**
       - mkdocs.yml
+      - catalog-info.yaml
 
 jobs:
   publish-techdocs:
@@ -14,12 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install TechDocs CLI
+        run: npm install -g @backstage/techdocs-cli
+
       - name: Generate TechDocs
         run: techdocs-cli generate
 
       - name: Publish TechDocs
-        run: techdocs-cli publish \
-          --publisher-type azureBlobStorage
+        run: techdocs-cli publish --publisher-type azureBlobStorage
         env:
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
