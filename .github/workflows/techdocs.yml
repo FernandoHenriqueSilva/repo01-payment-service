@@ -27,7 +27,8 @@ jobs:
             --publisher-type azureBlobStorage \
             --storage-name techdocs01 \
             --entity default/component/payment-service \
-            --azureAccountName $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME
+            --azureAccountName $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME \
+            --azureAccountKey $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY
         env:
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
