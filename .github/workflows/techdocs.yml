@@ -20,14 +20,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install TechDocs CLI
-        run: npm install -g @backstage/techdocs-cli
-
       - name: Generate TechDocs
-        run: techdocs-cli generate
+        run: npx -y @backstage/techdocs-cli generate
 
       - name: Publish TechDocs
-        run: techdocs-cli publish --publisher-type azureBlobStorage
+        run: npx -y @backstage/techdocs-cli publish --publisher-type azureBlobStorage
         env:
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
