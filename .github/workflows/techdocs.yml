@@ -5,19 +5,17 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "mkdocs.yml"
+      - "mkdocs.yaml"
+      - "catalog-info.yaml"
 
 jobs:
-  publish-techdocs-site:
+  publish-techdocs:
     runs-on: ubuntu-latest
 
     env:
-      # 🔐 Azure Storage
       AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
       AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-      TECHDOCS_CONTAINER_NAME: techdocs01
 
-      # 🧱 Backstage entity
       ENTITY_NAMESPACE: default
       ENTITY_KIND: Component
       ENTITY_NAME: payment-service
@@ -26,34 +24,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # Necessário para mkdocs-techdocs-core
-      - name: Install MkDocs TechDocs
-        run: |
-          pip install mkdocs-techdocs-core==1.*
-
       - name: Install TechDocs CLI
-        run: |
-          npm install -g @techdocs/cli
+        run: npm install -g @techdocs/cli
 
-      - name: Generate TechDocs site
+      - name: Install MkDocs
+        run: pip install "mkdocs-techdocs-core==1.*"
+
+      - name: Generate TechDocs
         run: |
-          techdocs-cli generate --no-docker --verbose
+          techdocs-cli generate \
+            --no-docker \
+            --source-dir . \
+            --output-dir site
 
       - name: Publish TechDocs to Azure Blob Storage
         run: |
           techdocs-cli publish \
             --publisher-type azureBlobStorage \
-            --storage-name $TECHDOCS_CONTAINER_NAME \
+            --storage-name techdocs01 \
             --entity $ENTITY_NAMESPACE/$ENTITY_KIND/$ENTITY_NAME \
+            --directory site \
             --azureAccountName $AZURE_STORAGE_ACCOUNT_NAME \
             --azureAccountKey $AZURE_STORAGE_ACCOUNT_KEY
