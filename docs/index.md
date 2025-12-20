@@ -1,7 +1,6 @@
 # Payment Service
 
-Este serviço é responsável pelo processamento de pagamentos!
+Documentação do serviço de pagamento.
 
-### Responsabilidades ###
-- Autorizar pagamentos.
-- Integrar com gateways.
+## Visão geral
+Esse serviço é responsável por...
