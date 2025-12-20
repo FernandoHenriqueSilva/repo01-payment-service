@@ -1,49 +1,58 @@
-name: TechDocs
+name: Publish TechDocs Site
 
 on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'        # Dispara quando arquivos na pasta docs mudam
-      - 'mkdocs.yml'     # Dispara quando o arquivo de configuração do mkdocs muda
-      - 'catalog-info.yaml'  # Opcional: inclua se quiser disparar ao mudar a entidade
+      - "docs/**"
+      - "mkdocs.yml"
 
 jobs:
-  publish-techdocs:
+  publish-techdocs-site:
     runs-on: ubuntu-latest
 
+    # 🔐 Variáveis no mesmo padrão da doc oficial
+    env:
+      TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+      TECHDOCS_AZURE_BLOB_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+      TECHDOCS_AZURE_BLOB_STORAGE_CONTAINER_NAME: techdocs01
+
+      ENTITY_NAMESPACE: default
+      ENTITY_KIND: Component
+      ENTITY_NAME: payment-service
+
     steps:
-      # 1. Baixar o código do repositório
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0 # Importante para o TechDocs gerar versões corretamente
+          node-version: 22
 
-      # 2. Configurar Node.js (necessário para o techdocs-cli)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: '22' # Use a versão que seu projeto precisa
+          python-version: "3.10"
 
-      # 3. Gerar a documentação HTML a partir dos arquivos markdown
-      - name: Generate TechDocs site
-        run: npx @techdocs/cli generate --no-docker --verbose
-        # A opção --no-docker assume que o mkdocs está instalado globalmente ou via pip.
-        # Se preferir usar Docker, remova --no-docker.
+      # (opcional) PlantUML — igual ao exemplo oficial
+      # Remova se não usar diagramas
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "11"
 
-      # 4. Publicar para o Azure Blob Storage
-      - name: Publish TechDocs to Azure Blob Storage
-        env:
-          # ESSAS VARIÁVEIS DEVEM SER IGUAIS ÀS DO SEU AMBIENTE LOCAL DO BACKSTAGE
-          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+      - name: Install techdocs-cli
+        run: npm install -g @techdocs/cli
+
+      - name: Install mkdocs and mkdocs plugins
+        run: pip install "mkdocs-techdocs-core==1.*"
+
+      - name: Generate docs site
+        run: techdocs-cli generate --no-docker --verbose
+
+      - name: Publish docs site
         run: |
-          echo "Publicando documentação para a conta: $TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME"
-          
-          npx @techdocs/cli publish \
+          techdocs-cli publish \
             --publisher-type azureBlobStorage \
-            --storage-name techdocs01 \
-            --entity default/component/payment-service \
-            --azureAccountName "$TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_NAME" \
-            --azureAccountKey "$TECHDOCS_AZURE_BLOB_STORAGE_ACCOUNT_KEY" \
-            --verbose
+            --storage-name $TECHDOCS_AZURE_BLOB_STORAGE_CONTAINER_NAME \
+            --entity $ENTITY_NAMESPACE/$ENTITY_KIND/$ENTITY_NAME
