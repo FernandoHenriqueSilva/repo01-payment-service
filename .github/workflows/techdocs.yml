@@ -1,49 +1,59 @@
-name: Publish TechDocs to Azure Blob
+name: Publish TechDocs Site
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
 
 jobs:
-  techdocs:
+  publish-techdocs-site:
     runs-on: ubuntu-latest
+
+    env:
+      # 🔐 Azure Storage
+      AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+      AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+      TECHDOCS_CONTAINER_NAME: techdocs01
+
+      # 🧱 Backstage entity
+      ENTITY_NAMESPACE: default
+      ENTITY_KIND: Component
+      ENTITY_NAME: payment-service
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Install MkDocs and TechDocs plugin
+      # Necessário para mkdocs-techdocs-core
+      - name: Install MkDocs TechDocs
         run: |
-          pip install mkdocs mkdocs-techdocs-core
+          pip install mkdocs-techdocs-core==1.*
 
       - name: Install TechDocs CLI
         run: |
           npm install -g @techdocs/cli
 
-      - name: Generate TechDocs
+      - name: Generate TechDocs site
         run: |
-          techdocs-cli generate --no-docker
+          techdocs-cli generate --no-docker --verbose
 
       - name: Publish TechDocs to Azure Blob Storage
-        env:
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
         run: |
           techdocs-cli publish \
             --publisher-type azureBlobStorage \
-            --storage-name techdocs01 \
-            --entity default/component/test \
+            --storage-name $TECHDOCS_CONTAINER_NAME \
+            --entity $ENTITY_NAMESPACE/$ENTITY_KIND/$ENTITY_NAME \
             --azureAccountName $AZURE_STORAGE_ACCOUNT_NAME \
             --azureAccountKey $AZURE_STORAGE_ACCOUNT_KEY
