@@ -51,4 +51,5 @@ jobs:
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }} \
               --destination ${{ secrets.AZURE_STORAGE_CONTAINER }} \
               --source site \
-              --overwrite
+              --overwrite \
+              --auth-mode login
