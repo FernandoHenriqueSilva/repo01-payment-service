@@ -2,10 +2,10 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: payment-service
-  description: Serviço de pagamentos
+  description: Documentação do Payment Service
   annotations:
     backstage.io/techdocs-ref: dir:.
 spec:
-  type: service
-  owner: team-platform
-  lifecycle: production
+  type: documentation
+  lifecycle: experimental
+  owner: devops
